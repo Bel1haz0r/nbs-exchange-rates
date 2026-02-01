@@ -17,7 +17,12 @@ This package:
 ---
 
 ## Installation
+Add private repository to composer
+```bash
+composer config --global repositories.justphoenix composer https://packages.justphoenix.io
+```
 
+Install the package
 ```bash
 composer require justphoenix/nbs-exchange-rates
 ```
