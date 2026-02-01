@@ -1,0 +1,30 @@
+{
+  "name": "justphoenix/nbs-exchange-rates",
+  "description": "Framework-agnostic client for National Bank of Serbia (NBS) exchange rates.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "^8.1",
+    "psr/log": "^1.1 || ^2.0 || ^3.0",
+    "ext-libxml": "*",
+    "ext-simplexml": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "JustPhoenix\\NbsExchangeRates\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "JustPhoenix\\NbsExchangeRates\\Tests\\": "tests/"
+    }
+  },
+  "suggest": {
+    "ext-soap": "Needed for SoapXmlDriver (recommended for NBS SOAP services)."
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
