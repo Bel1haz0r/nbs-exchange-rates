@@ -14,12 +14,13 @@ final class SoapXmlDriver implements Driver
      * @param array<string,mixed> $soapOptions
      */
     public function __construct(
-        string $wsdlUrl = 'https://webservices.nbs.rs/CommunicationOfficeService1_0/ExchangeRateXmlService.asmx?WSDL',
         array $soapOptions = []
     ) {
         if (!extension_loaded('soap')) {
             throw new TransportException("ext-soap is required for SoapXmlDriver.");
         }
+
+        $wsdlUrl = 'https://webservices.nbs.rs/CommunicationOfficeService1_0/ExchangeRateXmlService.asmx?WSDL';
 
         $defaults = [
             'trace' => false,
