@@ -17,48 +17,48 @@ final class NbsXmlParser
             throw new ParseException("Failed to parse NBS XML.");
         }
 
-        // NBS XML formats can vary depending on service.
-        // This parser supports the common <Exchange_Rates_List> format seen in NBS downloads/services. :contentReference[oaicite:2]{index=2}
-        // If your service returns a different shape, you can extend this parser or add another one.
+        // The real ExchangeRateXmlService response shape is a flat, repeated element:
+        // <ExchangeRateDataSet><ExchangeRate><Date>27.08.2026</Date>...
+        //   <CurrencyCode>978</CurrencyCode> (numeric) <CurrencyCodeAlfaChar>EUR</CurrencyCodeAlfaChar> (alpha)
+        //   ...<MiddleRate>...</MiddleRate></ExchangeRate>...</ExchangeRateDataSet>
+        // Each item repeats the list-level Date/ListNumber/ListType, so we read them off the first item.
+        // Some other NBS services may instead nest rows under a <header>/<item> pair — both are supported.
+        $items = $sxml->ExchangeRate ?? $sxml->ExchRate ?? null;
+        $header = null;
 
-        // Try: <Exchange_Rates_List><header>...<Date>...</Date>...</header><item>...</item>...
-        $header = $sxml->header ?? null;
-
-        $dateStr = (string)($header->Date ?? $header->date ?? '');
-        if ($dateStr === '') {
-            // fallback: try attribute or other node names if needed
-            $dateStr = (string)($sxml->Date ?? '');
+        if ($items === null) {
+            $header = $sxml->header ?? null;
+            $items = $sxml->item ?? $sxml->items?->item ?? $sxml->children();
         }
-
-        $date = $this->parseDate($dateStr);
-
-        $listNumber = (string)($header->No ?? $header->Number ?? $header->ListNumber ?? '');
-        $listType   = (string)($header->Type ?? $header->ListType ?? '');
 
         $rates = [];
-        // Common pattern: <item> nodes (sometimes named <Exchange_Rate> or similar)
-        $items = $sxml->item ?? $sxml->items?->item ?? null;
-
-        if ($items === null) {
-            // alternate: some XML may have <ExchangeRate> nodes
-            $items = $sxml->ExchangeRate ?? $sxml->ExchRate ?? null;
-        }
-
-        if ($items === null) {
-            // Last resort: scan children and pick those that look like rate rows
-            $items = $sxml->children();
-        }
+        $dateStr = '';
+        $listNumber = '';
+        $listType = '';
 
         foreach ($items as $node) {
-            $currencyCode = strtoupper((string)($node->Currency ?? $node->CurrencyCode ?? $node->oznaka ?? $node->Oznaka ?? ''));
+            // Alpha code (e.g. "EUR") must take priority — CurrencyCode/Sifra are numeric ISO codes.
+            $currencyCode = strtoupper((string)(
+                $node->CurrencyCodeAlfaChar ?? $node->Currency ?? $node->oznaka ?? $node->Oznaka ?? ''
+            ));
             if ($currencyCode === '') {
                 continue;
             }
 
-            $numCode = (int)($node->CurrencyCodeNum ?? $node->NumCode ?? $node->Sifra ?? $node->Code ?? 0);
+            if ($dateStr === '') {
+                $dateStr = (string)($node->Date ?? $node->date ?? '');
+            }
+            if ($listNumber === '') {
+                $listNumber = (string)($node->ExchangeRateListNumber ?? $node->No ?? $node->Number ?? '');
+            }
+            if ($listType === '') {
+                $listType = (string)($node->ExchangeRateListTypeID ?? $node->Type ?? $node->ListType ?? '');
+            }
+
+            $numCode = (int)($node->CurrencyCode ?? $node->CurrencyCodeNumChar ?? $node->NumCode ?? $node->Sifra ?? $node->Code ?? 0);
             $unit    = (int)($node->Unit ?? $node->VaziZa ?? $node->ValidFor ?? 1);
 
-            $country = (string)($node->Country ?? $node->CountryName ?? $node->NazivZemlje ?? $node->Zemlja ?? '');
+            $country = (string)($node->CountryNameEng ?? $node->Country ?? $node->CountryName ?? $node->NazivZemlje ?? $node->Zemlja ?? '');
 
             // Rates may be formatted with comma decimal separators (Serbian locale).
             $middle  = $this->normDecimal((string)($node->MiddleRate ?? $node->SrednjiKurs ?? $node->Middle ?? ''));
@@ -79,6 +79,18 @@ final class NbsXmlParser
         if (empty($rates)) {
             throw new ParseException("Parsed NBS XML but found 0 rates. XML shape may differ from expected format.");
         }
+
+        if ($dateStr === '' && $header !== null) {
+            $dateStr = (string)($header->Date ?? $header->date ?? '');
+        }
+        if ($listNumber === '' && $header !== null) {
+            $listNumber = (string)($header->No ?? $header->Number ?? $header->ListNumber ?? '');
+        }
+        if ($listType === '' && $header !== null) {
+            $listType = (string)($header->Type ?? $header->ListType ?? '');
+        }
+
+        $date = $this->parseDate($dateStr);
 
         return new ExchangeRateList(
             date: $date,
