@@ -5,10 +5,14 @@ namespace JustPhoenix\NbsExchangeRates\Driver;
 use JustPhoenix\NbsExchangeRates\Contracts\Driver;
 use JustPhoenix\NbsExchangeRates\Enum\RateType;
 use JustPhoenix\NbsExchangeRates\Exception\TransportException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class SoapXmlDriver implements Driver
 {
     private \SoapClient $client;
+
+    private readonly LoggerInterface $logger;
 
     private const NAMESPACE = 'http://communicationoffice.nbs.rs';
 
@@ -16,8 +20,11 @@ final class SoapXmlDriver implements Driver
      * @param array<string,mixed> $soapOptions
      */
     public function __construct(
-        array $soapOptions = []
+        array $soapOptions = [],
+        ?LoggerInterface $logger = null
     ) {
+        $this->logger = $logger ?? new NullLogger();
+
         if (!extension_loaded('soap')) {
             throw new TransportException("ext-soap is required for SoapXmlDriver.");
         }
@@ -73,7 +80,9 @@ final class SoapXmlDriver implements Driver
             }
             return $xml;
         } catch (\SoapFault $e) {
-            throw new TransportException("SOAP error: ".$this->faultMessage($e), previous: $e);
+            $message = $this->faultMessage($e);
+            $this->logger->error("NBS SOAP call failed: {$message}", ['exception' => $e]);
+            throw new TransportException("SOAP error: {$message}", previous: $e);
         }
     }
 
@@ -94,7 +103,9 @@ final class SoapXmlDriver implements Driver
             }
             return $xml;
         } catch (\SoapFault $e) {
-            throw new TransportException("SOAP error: ".$this->faultMessage($e), previous: $e);
+            $message = $this->faultMessage($e);
+            $this->logger->error("NBS SOAP call failed: {$message}", ['exception' => $e]);
+            throw new TransportException("SOAP error: {$message}", previous: $e);
         }
     }
 

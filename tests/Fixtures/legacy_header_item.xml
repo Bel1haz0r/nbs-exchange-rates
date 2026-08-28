@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExchangeRateList>
+    <header>
+        <Date>2026-08-27</Date>
+        <No>166</No>
+        <Type>1</Type>
+    </header>
+    <item>
+        <Oznaka>EUR</Oznaka>
+        <Sifra>978</Sifra>
+        <VaziZa>1</VaziZa>
+        <NazivZemlje>EMU</NazivZemlje>
+        <SrednjiKurs>117,2691</SrednjiKurs>
+        <KupovniKurs>116,1005</KupovniKurs>
+        <ProdajniKurs>118,4377</ProdajniKurs>
+    </item>
+</ExchangeRateList>

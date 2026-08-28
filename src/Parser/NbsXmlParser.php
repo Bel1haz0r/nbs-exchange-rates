@@ -5,17 +5,28 @@ namespace JustPhoenix\NbsExchangeRates\Parser;
 use JustPhoenix\NbsExchangeRates\Exception\ParseException;
 use JustPhoenix\NbsExchangeRates\Dto\ExchangeRate;
 use JustPhoenix\NbsExchangeRates\Dto\ExchangeRateList;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class NbsXmlParser
 {
+    public function __construct(
+        private readonly LoggerInterface $logger = new NullLogger()
+    ) {}
+
     public function parseExchangeRates(string $xml): ExchangeRateList
     {
-        libxml_use_internal_errors(true);
+        libxml_clear_errors();
+        $priorSetting = libxml_use_internal_errors(true);
 
         $sxml = simplexml_load_string($xml);
         if ($sxml === false) {
-            throw new ParseException("Failed to parse NBS XML.");
+            $detail = $this->libxmlErrorSummary();
+            libxml_use_internal_errors($priorSetting);
+            $this->logger->error("Failed to parse NBS XML.", ['libxml' => $detail, 'xml' => $xml]);
+            throw new ParseException("Failed to parse NBS XML." . ($detail !== '' ? " ({$detail})" : ''));
         }
+        libxml_use_internal_errors($priorSetting);
 
         // The real ExchangeRateXmlService response shape is a flat, repeated element:
         // <ExchangeRateDataSet><ExchangeRate><Date>27.08.2026</Date>...
@@ -77,6 +88,7 @@ final class NbsXmlParser
         }
 
         if (empty($rates)) {
+            $this->logger->warning("Parsed NBS XML but found 0 rates.", ['xml' => $xml]);
             throw new ParseException("Parsed NBS XML but found 0 rates. XML shape may differ from expected format.");
         }
 
@@ -131,9 +143,24 @@ final class NbsXmlParser
         if ($value === '') {
             return null;
         }
-        // NBS often uses comma as decimal separator in Serbian formatted outputs
+        // NBS often uses Serbian-locale formatting: "." as thousands separator, "," as decimal
+        // separator (e.g. "1.234,56"). Strip the thousands separator before swapping the decimal
+        // comma, otherwise a value like "1.234,56" would become the corrupted "1.234.56".
         $value = str_replace([' ', "\xc2\xa0"], '', $value);
-        $value = str_replace(',', '.', $value);
+        if (str_contains($value, ',')) {
+            $value = str_replace('.', '', $value);
+            $value = str_replace(',', '.', $value);
+        }
         return $value;
+    }
+
+    private function libxmlErrorSummary(): string
+    {
+        $messages = array_map(
+            static fn (\LibXMLError $e): string => trim($e->message) . " (line {$e->line})",
+            libxml_get_errors()
+        );
+        libxml_clear_errors();
+        return implode('; ', $messages);
     }
 }

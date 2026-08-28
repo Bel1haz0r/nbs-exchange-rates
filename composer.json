@@ -26,6 +26,9 @@
   "suggest": {
     "ext-soap": "Needed for SoapXmlDriver (recommended for NBS SOAP services)."
   },
+  "scripts": {
+    "test": "phpunit"
+  },
   "minimum-stability": "stable",
   "prefer-stable": true
 }

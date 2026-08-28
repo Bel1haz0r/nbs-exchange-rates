@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExchangeRateDataSet>
+    <ExchangeRate>
+        <Date>27.08.2026</Date>
+        <ExchangeRateListNumber>166</ExchangeRateListNumber>
+        <ExchangeRateListTypeID>3</ExchangeRateListTypeID>
+        <CurrencyCode>978</CurrencyCode>
+        <CurrencyCodeAlfaChar>EUR</CurrencyCodeAlfaChar>
+        <CountryNameEng>EMU</CountryNameEng>
+        <Unit>1</Unit>
+        <MiddleRate>117,2691</MiddleRate>
+        <BuyingRate>116,1005</BuyingRate>
+        <SellingRate>118,4377</SellingRate>
+    </ExchangeRate>
+    <ExchangeRate>
+        <Date>27.08.2026</Date>
+        <ExchangeRateListNumber>166</ExchangeRateListNumber>
+        <ExchangeRateListTypeID>3</ExchangeRateListTypeID>
+        <CurrencyCode>840</CurrencyCode>
+        <CurrencyCodeAlfaChar>USD</CurrencyCodeAlfaChar>
+        <CountryNameEng>USA</CountryNameEng>
+        <Unit>1</Unit>
+        <MiddleRate>1.234,56</MiddleRate>
+        <BuyingRate>1.221,00</BuyingRate>
+        <SellingRate>1.248,00</SellingRate>
+    </ExchangeRate>
+    <ExchangeRate>
+        <Date>27.08.2026</Date>
+        <ExchangeRateListNumber>166</ExchangeRateListNumber>
+        <ExchangeRateListTypeID>3</ExchangeRateListTypeID>
+        <CurrencyCode>392</CurrencyCode>
+        <CurrencyCodeAlfaChar>JPY</CurrencyCodeAlfaChar>
+        <CountryNameEng>Japan</CountryNameEng>
+        <Unit>100</Unit>
+        <MiddleRate>79,8123</MiddleRate>
+        <BuyingRate>79,0142</BuyingRate>
+        <SellingRate>80,6104</SellingRate>
+    </ExchangeRate>
+</ExchangeRateDataSet>
